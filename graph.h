@@ -36,9 +36,15 @@ Graph *createGraph(int nodeNo);
 
 EdgeList *adjToEdge(Graph *graph);
 
+int **listToMatrix(Graph *graph);
+
 EdgeList* kruskal(Graph *graph, EdgeList *eList, int *cost);
 
 void prim(Graph *graph);
+
+void dijkstra(Graph *graph, int startNode);
+
+void bellmanFord(Graph *graph, int startNode);
 
 void addEdgeUndirected(Graph *graph, int src, int dest);
 

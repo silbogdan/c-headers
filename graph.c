@@ -58,6 +58,31 @@ EdgeList *adjToEdge(Graph *graph)
     return list;
 }
 
+int **listToMatrix(Graph *graph)
+{
+    int size = graph->nodeNo;
+    int **matrix = (int **)malloc(size * sizeof(int*) + size * size * sizeof(int));
+    int *ptr;
+
+    ptr = (int *)(matrix + size);
+    for (int i = 0; i < size; i++)
+    {
+        matrix[i] = (ptr + size  * i);
+        memset(matrix[i], 0, sizeof(matrix[i]));
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+
+        for ( ; graph->array[i].head != NULL; graph->array[i].head = graph->array[i].head->next)
+        {
+            matrix[i][graph->array[i].head->dest] = graph->array[i].head->weight;
+        }
+    }
+
+    return matrix;
+}
+
 EdgeList *kruskal(Graph *graph, EdgeList *eList, int *cost)
 {
 
@@ -155,6 +180,103 @@ void prim(Graph *graph)
         totalCost += key[i];
     }
     printf("Cost total: %d\n", totalCost);
+}
+
+int minDistance(int *distance, int *visited, int size)
+{
+    int index = -1, min = INT_MAX;
+    for (int i = 0; i < size; i++)
+    {
+        if (visited[i] == 0 && distance[i] < min)
+        {
+            min = distance[i];
+            index = i;
+        }
+    }
+
+    return index;
+}
+
+void dijkstra(Graph *graph, int startNode)
+{
+    int **matrix = listToMatrix(graph);
+    int *distance = (int *)malloc(graph->nodeNo * sizeof(int));
+    int *visited = (int *)calloc(graph->nodeNo, sizeof(int));
+
+    for (int i = 0; i < graph->nodeNo; i++)
+        distance[i] = INT_MAX-1;
+
+    int curNode = startNode;
+    distance[curNode] = 0;
+    visited[curNode] = 1;
+
+
+    for (int i = 0; i < graph->nodeNo; i++)
+    {
+        for (int j = 0; j < graph->nodeNo; j++)
+        {
+            if (matrix[curNode][j] != 0 && distance[curNode] + matrix[curNode][j] < distance[j])
+                distance[j] = distance[curNode] + matrix[curNode][j];
+        }
+        
+        curNode = minDistance(distance, visited, graph->nodeNo);
+        visited[curNode] = 1;
+    }
+
+    int cost = 0;
+    printf("Costuri: ");  
+    for (int i = 0 ; i < graph->nodeNo; i++)
+    {
+        cost += distance[i];
+        printf("%d ", distance[i]);
+    }
+
+    printf("\nCost total: %d\n", cost);
+}
+
+void bellmanFord(Graph *graph, int startNode)
+{
+    int **matrix = listToMatrix(graph);
+    int *distance = (int *)malloc(graph->nodeNo * sizeof(int));
+
+    for (int i = 0; i < graph->nodeNo; i++)
+        distance[i] = INT_MAX-1;
+
+    distance[startNode] = 0;
+
+    for (int k = 0; k < graph->nodeNo; k++)
+    {
+        for (int i = 0; i < graph->nodeNo; i++)
+        {
+            for (int j = 0; j < graph->nodeNo; j++)
+            {
+                if (distance[i] != INT_MAX-1 && matrix[i][j] != 0 && matrix[i][j] + distance[i] < distance[j])
+                {
+                    distance[j] = matrix[i][j] + distance[i];
+                }
+            }
+        }
+    }
+
+    // Check for negative cycle
+    for (int i = 0; i < graph->nodeNo-1; i++)
+    {
+        for (int j = 0; j < graph->nodeNo; j++)
+        {
+            if (matrix[i][j] != 0 && matrix[i][j] + distance[i] < distance[j])
+            {
+                printf("Found negative cycle");
+                return;
+            }
+        }
+    }
+
+    printf("Costuri: ");
+    int cost = 0;
+    for (int i = 0; i < graph->nodeNo; i++)
+        printf("%d ", distance[i]), cost += distance[i];
+
+    printf("\nCost total: %d\n", cost);
 }
 
 void addEdgeUndirected(Graph *graph, int src, int dest)
